@@ -1,7 +1,8 @@
 {
   "name": "calendar-widget",
   "version": "1.0.0",
-  "description": "备考倒计时桌面 Widget",
+  "description": "Smart Calendar desktop widget with read-only events, countdowns, and Pomodoro",
+  "license": "MIT",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
