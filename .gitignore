@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Local OAuth credentials and environment overrides
+credentials.js
+.env
+.env.*
+!.env.example
+
+# Electron build output
+dist/
+out/
+release/
+
+# Logs and local runtime data
+*.log
+widget-data.json
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

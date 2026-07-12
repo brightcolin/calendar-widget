@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 100vw;
+  height: 100vh;
+  background: #060402;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  color: #f5ede4;
+  animation: fadeIn 0.6s ease;
+  overflow: hidden;
+  user-select: none;
+  transition: background 1.2s ease;
+}
+
+@keyframes fadeIn  { from { opacity: 0; transform: scale(1.01); }
+                     to   { opacity: 1; transform: scale(1);    } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* ── Close ── */
+#fsClose {
+  position: fixed;
+  top: 36px;
+  right: 48px;
+  font-size: 16px;
+  color: rgba(255, 200, 160, 0.22);
+  cursor: pointer;
+  transition: color 0.2s;
+  letter-spacing: 0.5px;
+}
+#fsClose:hover { color: rgba(255, 200, 160, 0.65); }
+
+/* ── Top clock ── */
+.fs-top {
+  position: fixed;
+  top: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.fs-clock {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 6px;
+  color: rgba(255, 215, 180, 0.60);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.fs-date {
+  font-size: 11px;
+  color: rgba(255, 200, 155, 0.28);
+  letter-spacing: 2px;
+}
+
+/* ── Center ring + timer ── */
+.fs-center {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 380px;
+  height: 380px;
+}
+
+.fs-ring {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+}
+
+.ring-bg {
+  fill: none;
+  stroke: rgba(255, 200, 160, 0.06);
+  stroke-width: 2;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: #d4845a;
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s linear, stroke 0.5s ease;
+}
+
+.fs-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 1;
+}
+
+.fs-mode {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #d4845a;
+  transition: color 0.5s;
+  opacity: 0.85;
+}
+
+.fs-timer {
+  font-size: 108px;
+  font-weight: 200;
+  letter-spacing: 4px;
+  color: #fff8f2;
+  font-family: 'Consolas', 'Lucida Console', 'Courier New', monospace;
+  line-height: 1;
+  text-shadow: 0 0 80px rgba(212, 132, 90, 0.18);
+  transition: text-shadow 0.5s;
+}
+
+.fs-count {
+  font-size: 13px;
+  color: rgba(255, 210, 175, 0.32);
+  letter-spacing: 1px;
+}
+
+/* ── Quote ── */
+.fs-quote {
+  margin-top: 52px;
+  font-size: 20px;
+  color: rgba(255, 195, 150, 0.48);
+  font-style: italic;
+  letter-spacing: 1.5px;
+  max-width: 600px;
+  text-align: center;
+  line-height: 2.2;
+}
+.fs-quote::before { content: '\201C'; }
+.fs-quote::after  { content: '\201D'; }
+
+/* ── Progress bar ── */
+.fs-bar-wrap {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 200, 160, 0.05);
+}
+#fsBar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(212,132,90,0.5), rgba(240,192,112,0.5));
+  transition: width 1s linear, background 0.5s;
+}
+
+/* ── Hint ── */
+.fs-hint {
+  position: fixed;
+  bottom: 18px;
+  font-size: 10px;
+  color: rgba(255, 200, 160, 0.14);
+  letter-spacing: 1.5px;
+}
+</style>
+</head>
+<body>
+
+<span id="fsClose" onclick="dismiss()">✕</span>
+
+<div class="fs-top">
+  <div class="fs-clock" id="fsClock">00:00:00</div>
+  <div class="fs-date"  id="fsDate"></div>
+</div>
+
+<div class="fs-center">
+  <svg class="fs-ring" viewBox="0 0 380 380">
+    <circle class="ring-bg"   cx="190" cy="190" r="178"/>
+    <circle class="ring-fill" id="fsRing" cx="190" cy="190" r="178"
+      transform="rotate(-90 190 190)"
+      stroke-dasharray="1118.7"
+      stroke-dashoffset="0"/>
+  </svg>
+  <div class="fs-inner">
+    <div class="fs-mode"  id="fsMode">专注</div>
+    <div class="fs-timer" id="fsTimer">--:--</div>
+    <div class="fs-count" id="fsCount">🍅 ×0</div>
+  </div>
+</div>
+
+<div class="fs-quote" id="fsQuote"></div>
+
+<div class="fs-bar-wrap"><div id="fsBar"></div></div>
+<div class="fs-hint">移动鼠标或按任意键退出 · 空格暂停/继续</div>
+
+<script>
+const PM_LABEL = { work: '专注', short: '短休息', long: '长休息' };
+const PM_COLOR = { work: '#d4845a', short: '#70b89a', long: '#9580d4' };
+const RING_C   = 2 * Math.PI * 178; // ≈ 1118.7
+
+let dismissed    = false;
+let ready        = false;
+let fsTotal      = 1500; // fallback 25min
+let currentMode  = 'work';
+
+setTimeout(() => { ready = true; }, 700);
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function updateFsClock() {
+  const now  = new Date();
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('fsClock').textContent =
+    `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+  document.getElementById('fsDate').textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日  周${days[now.getDay()]}`;
+}
+
+const BG_COLOR = { work: '#060402', short: '#02040c', long: '#030209' };
+
+function applyMode(mode) {
+  currentMode = mode;
+  const color = PM_COLOR[mode] || '#d4845a';
+  document.getElementById('fsMode').textContent = PM_LABEL[mode] || mode;
+  document.getElementById('fsMode').style.color = color;
+  document.getElementById('fsTimer').style.textShadow = `0 0 80px ${color}30`;
+  document.getElementById('fsRing').style.stroke = color;
+  document.getElementById('fsBar').style.background =
+    `linear-gradient(90deg, ${color}80, ${color}40)`;
+  document.body.style.background = BG_COLOR[mode] || '#060402';
+}
+
+function applyTimer(remaining, total) {
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  document.getElementById('fsTimer').textContent = `${pad2(m)}:${pad2(s)}`;
+  const offset = RING_C * (1 - remaining / (total || fsTotal));
+  document.getElementById('fsRing').style.strokeDashoffset = offset;
+  document.getElementById('fsBar').style.width = (remaining / (total || fsTotal) * 100) + '%';
+  // Last 5 min of work: ring shifts from orange toward red
+  if (currentMode === 'work' && remaining <= 300) {
+    const t = remaining / 300; // 1→0 as time runs out
+    const hue = Math.round(t * 22); // 22°(orange) → 0°(red)
+    document.getElementById('fsRing').style.stroke = `hsl(${hue}, 85%, 58%)`;
+  }
+}
+
+function dismiss() {
+  if (!ready || dismissed) return;
+  dismissed = true;
+  document.body.style.animation = 'fadeOut 0.35s ease forwards';
+  setTimeout(() => window.fs_widget.close(), 350);
+}
+
+window.fs_widget.onInit((state) => {
+  fsTotal = state.total || 1500;
+  applyMode(state.mode);
+  applyTimer(state.remaining, fsTotal);
+  document.getElementById('fsCount').textContent = `🍅 ×${state.todayCount}`;
+  document.getElementById('fsQuote').textContent = state.quote || '';
+});
+
+window.fs_widget.onTick((remaining, mode) => {
+  applyMode(mode);
+  applyTimer(remaining, fsTotal);
+});
+
+window.fs_widget.onClose(() => dismiss());
+
+updateFsClock();
+setInterval(updateFsClock, 1000);
+
+let startX = null, startY = null;
+document.addEventListener('mousemove', (e) => {
+  if (startX === null) { startX = e.clientX; startY = e.clientY; return; }
+  if (Math.hypot(e.clientX - startX, e.clientY - startY) > 60) dismiss();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); window.fs_widget.togglePause(); }
+  else dismiss();
+});
+
+window.fs_widget.onPauseState((paused) => {
+  const modeEl = document.getElementById('fsMode');
+  const timerEl = document.getElementById('fsTimer');
+  if (paused) {
+    modeEl.textContent = '⏸ 已暂停';
+    timerEl.style.opacity = '0.4';
+  } else {
+    modeEl.textContent = PM_LABEL[currentMode] || currentMode;
+    timerEl.style.opacity = '1';
+  }
+});
+</script>
+</body>
+</html>

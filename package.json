@@ -1,0 +1,13 @@
+{
+  "name": "calendar-widget",
+  "version": "1.0.0",
+  "description": "备考倒计时桌面 Widget",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.3.3"
+  }
+}

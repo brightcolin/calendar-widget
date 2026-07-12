@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 300px;
+  height: 640px;
+  overflow: hidden;
+  background: transparent;
+  -webkit-app-region: no-drag;
+  user-select: none;
+}
+
+.widget { -webkit-app-region: drag; }
+
+button, input, #events, #countdowns, .countdown-del {
+  -webkit-app-region: no-drag;
+}
+
+.widget {
+  width: 300px;
+  height: 640px;
+  background: rgba(20, 12, 8, 0.87);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 200, 160, 0.09);
+  padding: 18px 16px 14px;
+  color: #f0e8e0;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Clock ── */
+.clock-section {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 200, 160, 0.08);
+  flex-shrink: 0;
+}
+
+#clock {
+  font-size: 38px;
+  font-weight: 200;
+  letter-spacing: 3px;
+  color: #fff8f4;
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  line-height: 1;
+}
+
+#date {
+  font-size: 11px;
+  color: rgba(255, 210, 175, 0.50);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+#quote {
+  font-size: 10px;
+  color: rgba(255, 195, 150, 0.38);
+  margin-top: 6px;
+  font-style: italic;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+}
+#quote::before { content: '\201C'; }
+#quote::after  { content: '\201D'; }
+
+/* ── Section labels ── */
+.section-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: rgba(255, 200, 155, 0.32);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+/* ── Pomodoro ── */
+.pomo-section {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255, 200, 160, 0.08);
+  padding-top: 10px;
+  margin-top: 12px;
+}
+
+.pomo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.pomo-mode-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #e8856a;
+  transition: color 0.3s;
+}
+
+.pomo-count {
+  font-size: 11px;
+  color: rgba(255, 210, 175, 0.40);
+}
+
+.pomo-timer {
+  font-size: 34px;
+  font-weight: 200;
+  letter-spacing: 2px;
+  color: #fff8f4;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.pomo-controls {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.pomo-btn {
+  background: rgba(255, 200, 160, 0.07);
+  border: 1px solid rgba(255, 200, 160, 0.12);
+  color: rgba(255, 220, 190, 0.78);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 9px;
+  transition: background 0.12s, transform 0.08s;
+}
+.pomo-btn:hover  { background: rgba(255, 200, 160, 0.16); }
+.pomo-btn:active { background: rgba(255, 200, 160, 0.26); transform: scale(0.94); }
+
+.pomo-primary {
+  padding: 5px 16px;
+  background: rgba(232, 133, 106, 0.15);
+  border-color: rgba(232, 133, 106, 0.32);
+  color: #e8856a;
+  transition: background 0.12s, color 0.3s, border-color 0.3s;
+}
+.pomo-primary:hover { background: rgba(232, 133, 106, 0.26); }
+
+/* ── Pomodoro Stats ── */
+.pomo-stats-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0.35;
+  padding: 0;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+.pomo-stats-btn:hover { opacity: 0.75; }
+
+.pomo-stats-panel {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 6px 4px;
+  background: rgba(255, 200, 160, 0.04);
+  border-radius: 8px;
+}
+
+.pomo-stats-chart {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 64px;
+  padding: 0 2px;
+  gap: 2px;
+}
+
+.stat-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.stat-bar {
+  width: 100%;
+  max-width: 20px;
+  background: rgba(232, 133, 106, 0.28);
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+.stat-col.today .stat-bar { background: rgba(232, 133, 106, 0.72); }
+
+.stat-val {
+  font-size: 8px;
+  color: rgba(255, 210, 175, 0.38);
+  height: 10px;
+  line-height: 10px;
+}
+.stat-col.today .stat-val { color: rgba(232, 133, 106, 0.75); }
+
+.stat-day {
+  font-size: 9px;
+  color: rgba(255, 200, 155, 0.30);
+}
+.stat-col.today .stat-day { color: rgba(232, 133, 106, 0.65); }
+
+/* ── Pomodoro Settings ── */
+.pomo-settings {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 200, 160, 0.05);
+  border-radius: 8px;
+}
+
+.pomo-cfg-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: rgba(255, 210, 175, 0.50);
+}
+
+.pomo-cfg-item span { flex: 1; white-space: nowrap; }
+
+.pomo-cfg-item b {
+  color: rgba(255, 240, 220, 0.90);
+  min-width: 18px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.pomo-cfg-item button {
+  background: rgba(255, 200, 160, 0.07);
+  border: 1px solid rgba(255, 200, 160, 0.14);
+  color: rgba(255, 210, 175, 0.60);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pomo-cfg-item button:hover { background: rgba(255, 200, 160, 0.18); color: #fff8f4; }
+
+/* ── Countdowns ── */
+.exam-section { flex-shrink: 0; }
+
+.cd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.cd-add-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 200, 160, 0.35);
+  font-size: 17px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.15s;
+}
+.cd-add-btn:hover { color: rgba(255, 200, 160, 0.80); }
+
+.cd-form {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 200, 160, 0.05);
+  border-radius: 8px;
+}
+
+.cd-form input {
+  background: rgba(255, 200, 160, 0.07);
+  border: 1px solid rgba(255, 200, 160, 0.15);
+  border-radius: 5px;
+  color: rgba(255, 240, 220, 0.85);
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+  width: 100%;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  color-scheme: dark;
+}
+.cd-form input:focus { border-color: rgba(255, 200, 160, 0.38); }
+.cd-form input::placeholder { color: rgba(255, 200, 160, 0.28); }
+
+.cd-form-btns { display: flex; gap: 6px; }
+.cd-form-btns button {
+  flex: 1;
+  background: rgba(255, 200, 160, 0.08);
+  border: 1px solid rgba(255, 200, 160, 0.15);
+  border-radius: 5px;
+  color: rgba(255, 220, 190, 0.70);
+  font-size: 11px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.cd-form-btns button:hover { background: rgba(255, 200, 160, 0.20); color: #fff8f4; }
+
+.exam-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.countdown-item { position: relative; }
+
+.exam-name { font-size: 12px; color: rgba(255, 235, 215, 0.75); }
+
+.exam-days {
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.countdown-del {
+  font-size: 9px;
+  color: rgba(255, 90, 70, 0);
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.countdown-item:hover .countdown-del { color: rgba(255, 90, 70, 0.50); }
+.countdown-del:hover { color: rgba(255, 90, 70, 0.90) !important; }
+
+.urgent { color: #e8856a; }
+.near   { color: #f0c070; }
+.far    { color: #88c0d0; }
+
+/* ── Separator ── */
+.sep {
+  height: 1px;
+  background: rgba(255, 200, 160, 0.07);
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+
+/* ── Events ── */
+.events-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#events {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+#events::-webkit-scrollbar { display: none; }
+
+.event-row {
+  display: flex;
+  gap: 9px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 200, 160, 0.05);
+  align-items: baseline;
+}
+
+.event-row.ongoing {
+  border-left: 2px solid #f0c070;
+  padding-left: 6px;
+}
+
+.event-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+  opacity: 0.75;
+}
+
+.event-time {
+  font-size: 10px;
+  color: rgba(255, 200, 155, 0.48);
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.event-title {
+  font-size: 12px;
+  color: rgba(255, 240, 220, 0.82);
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.dim-text {
+  font-size: 11px;
+  color: rgba(255, 210, 175, 0.35);
+  padding: 8px 0;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <!-- Clock -->
+  <div class="clock-section">
+    <div id="clock">00:00:00</div>
+    <div id="date"></div>
+    <div id="quote"></div>
+  </div>
+
+  <!-- Pomodoro Timer -->
+  <div class="pomo-section">
+    <div class="pomo-header">
+      <span class="pomo-mode-label" id="pomoLabel">专注</span>
+      <div style="display:flex;align-items:center;gap:7px;-webkit-app-region:no-drag">
+        <span class="pomo-count" id="pomoCount">🍅 ×0</span>
+        <button class="pomo-stats-btn" id="pomoStatsBtn" title="本周统计">📊</button>
+      </div>
+    </div>
+    <div class="pomo-timer" id="pomoTimer">25:00</div>
+    <div class="pomo-controls">
+      <button class="pomo-btn pomo-primary" id="pomoBtnMain">▶ 开始</button>
+      <button class="pomo-btn" id="pomoBtnReset" title="重置">↺</button>
+      <button class="pomo-btn" id="pomoBtnSkip" title="跳过此阶段">⏭</button>
+      <button class="pomo-btn" id="pomoBtnCfg" title="设置">⚙</button>
+    </div>
+    <div class="pomo-stats-panel" id="pomoStatsPanel">
+      <div class="pomo-stats-chart" id="pomoStatsChart"></div>
+    </div>
+    <div class="pomo-settings" id="pomoSettings">
+      <div class="pomo-cfg-item"><span>专注</span><button id="cfgWorkDec">−</button><b id="cfgWork">25</b>m<button id="cfgWorkInc">+</button></div>
+      <div class="pomo-cfg-item"><span>短休</span><button id="cfgShortDec">−</button><b id="cfgShort">5</b>m<button id="cfgShortInc">+</button></div>
+      <div class="pomo-cfg-item"><span>长休</span><button id="cfgLongDec">−</button><b id="cfgLong">15</b>m<button id="cfgLongInc">+</button></div>
+      <div class="pomo-cfg-item"><span>N轮后长休</span><button id="cfgCyclesDec">−</button><b id="cfgCycles">4</b><button id="cfgCyclesInc">+</button></div>
+    </div>
+  </div>
+
+  <!-- Countdowns -->
+  <div class="exam-section">
+    <div class="cd-header">
+      <div class="section-label" style="margin:0">倒计时</div>
+      <button class="cd-add-btn" id="cdAddBtn" title="添加倒计时">＋</button>
+    </div>
+    <div class="cd-form" id="countdownForm">
+      <input type="text" id="cdName" placeholder="事件名称" maxlength="14">
+      <input type="date" id="cdDate">
+      <div class="cd-form-btns">
+        <button id="cdSubmit">确认</button>
+        <button id="cdCancel">取消</button>
+      </div>
+    </div>
+    <div id="countdowns"></div>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- Today's Events -->
+  <div class="events-section">
+    <div class="section-label">今日日程</div>
+    <div id="events"><div class="dim-text">正在加载…</div></div>
+  </div>
+
+</div>
+<script src="renderer.js"></script>
+</body>
+</html>
