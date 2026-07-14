@@ -2,6 +2,11 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Electron](https://img.shields.io/badge/Electron-desktop-47848F?logo=electron&logoColor=white)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?logo=windows&logoColor=white)
+![Status: Personal Testing](https://img.shields.io/badge/status-personal%20testing-orange.svg)
+
 Smart Calendar 的 Electron 桌面伴侣应用，用于显示主日历中的当日日程、管理倒计时，并提供番茄钟、每周专注统计、系统通知和空闲时全屏专注界面。
 
 ## 与 Web 应用的关系

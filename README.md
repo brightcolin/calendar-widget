@@ -2,6 +2,11 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Electron](https://img.shields.io/badge/Electron-desktop-47848F?logo=electron&logoColor=white)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?logo=windows&logoColor=white)
+![Status: Personal Testing](https://img.shields.io/badge/status-personal%20testing-orange.svg)
+
 The Electron desktop companion to Smart Calendar. It displays today's events from the primary Google Calendar, manages local countdowns, and provides a Pomodoro timer with weekly focus statistics, system notifications, and an idle-triggered fullscreen focus view.
 
 ## Relationship to the Web App
