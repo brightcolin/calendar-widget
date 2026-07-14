@@ -1,40 +1,42 @@
 # Calendar Widget
 
-Smart Calendar 的 Electron 桌面伴侣应用，用于显示主日历中的当日日程、管理倒计时，并提供番茄钟、每周专注统计、系统通知和空闲时全屏专注界面。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-## 与 Web 应用的关系
+The Electron desktop companion to Smart Calendar. It displays today's events from the primary Google Calendar, manages local countdowns, and provides a Pomodoro timer with weekly focus statistics, system notifications, and an idle-triggered fullscreen focus view.
 
-Web 应用位于独立仓库 [`smart-calendar`](https://github.com/brightcolin/smart-calendar)。两个项目是独立应用：
+## Relationship to the Web App
 
-- 不加载彼此源码。
-- 不共享 localStorage 或本地配置。
-- 分别完成 Google OAuth 登录。
-- 通过同一个 Google Calendar 账号共享事件。
-- Widget 只读取主日历；Web 应用可以创建和修改事件。
-- 两者共同识别 `#标签 活动名`格式。
+The web application is maintained in the separate [`smart-calendar`](https://github.com/brightcolin/smart-calendar) repository. The two projects are independent applications:
 
-番茄钟、倒计时和专注历史只保存在 Widget 本地。
+- They do not load each other's source code.
+- They do not share localStorage or local configuration.
+- They complete Google OAuth authorization independently.
+- They share events through the same Google Calendar account.
+- The Widget reads only the primary calendar; the web app can create and update events.
+- Both recognize the `#tag event name` convention.
 
-## 功能
+Pomodoro settings, countdowns, and focus history are stored only by the Widget.
 
-- 显示当前时间、日期和每日提示语。
-- 每 5 分钟刷新一次 Google Calendar 当日日程。
-- 根据 `#标签`为事件显示颜色。
-- 创建和删除本地倒计时。
-- 自定义专注、短休、长休和长休周期。
-- 保存当天番茄数和每周统计。
-- 番茄阶段完成时显示系统通知。
-- 专注运行且系统空闲一段时间后显示全屏专注界面。
-- 托盘隐藏、恢复和退出。
+## Features
 
-## 环境要求
+- Display the current time, date, and a daily message.
+- Refresh today's Google Calendar events every five minutes.
+- Color events according to their `#tag` prefix.
+- Create and delete local countdowns.
+- Customize focus, short-break, and long-break durations and the long-break interval.
+- Save today's Pomodoro count and weekly statistics.
+- Show system notifications when a Pomodoro phase finishes.
+- Open a fullscreen focus view when focus is running and the system has been idle for a configured period.
+- Hide, restore, and exit from the system tray.
 
-- Node.js 和 npm
-- Google Cloud 项目
-- 已启用的 Google Calendar API
-- Google OAuth 桌面应用客户端
+## Requirements
 
-## 安装
+- Node.js and npm
+- A Google Cloud project
+- Google Calendar API enabled
+- A Google OAuth client of the **Desktop app** type
+
+## Installation
 
 ```powershell
 git clone https://github.com/brightcolin/calendar-widget.git
@@ -42,13 +44,13 @@ cd calendar-widget
 npm install
 ```
 
-复制凭据模板：
+Copy the credential template:
 
 ```powershell
 Copy-Item credentials.example.js credentials.js
 ```
 
-然后编辑 `credentials.js`：
+Then edit `credentials.js`:
 
 ```javascript
 module.exports = {
@@ -57,115 +59,105 @@ module.exports = {
 };
 ```
 
-`credentials.js` 已被 `.gitignore` 忽略。不要强制提交真实凭据。
+`credentials.js` is ignored by `.gitignore`. Never force-add real credentials to Git.
 
-## Google OAuth 配置
+## Google OAuth Setup
 
-1. 在 Google Cloud 中启用 Google Calendar API。
-2. 配置 OAuth 同意屏幕，并在测试模式下加入测试用户。
-3. 创建桌面应用类型的 OAuth 客户端。
-4. 将 Client ID 和 Client Secret 写入本地 `credentials.js`。
-5. 启动应用并在系统浏览器完成授权。
+1. Enable the Google Calendar API in Google Cloud.
+2. Configure the OAuth consent screen and add test users while the app is in testing mode.
+3. Create an OAuth client of the **Desktop app** type.
+4. Add its Client ID and Client Secret to the local `credentials.js` file.
+5. Start the application and complete authorization in the system browser.
 
-应用使用回环地址：
+The application uses this loopback redirect:
 
 ```text
 http://127.0.0.1:3721
 ```
 
-申请的权限仅为：
+It requests only this scope:
 
 ```text
 https://www.googleapis.com/auth/calendar.readonly
 ```
 
-因此 Widget 无法创建、修改或删除 Google Calendar 事件。
+The Widget therefore cannot create, update, or delete Google Calendar events.
 
-## 启动
+## Running
 
 ```powershell
 npm start
 ```
 
-首次启动会打开系统浏览器进行 Google 登录。授权成功后，Widget 会读取主日历中的当日事件。
+The first run opens the system browser for Google sign-in. After authorization, the Widget reads today's events from the primary calendar.
 
-项目目前没有打包、自动化测试或 lint 脚本。
+The project currently has no packaging, automated test, or lint script.
 
-## 数据存储
+## Data Storage
 
-| 数据 | 存储位置 |
+| Data | Storage location |
 | --- | --- |
-| Google OAuth Token | Electron `app.getPath('userData')/widget-data.json` |
-| 窗口位置 | 同一个 `widget-data.json` |
-| 倒计时 | Electron renderer localStorage 的 `widget_countdowns` |
-| 番茄设置 | localStorage 的 `pomo_cfg` |
-| 当日番茄数 | localStorage 的 `pomo_today` |
-| 专注历史 | localStorage 的 `pomo_history` |
-| 崩溃日志 | 用户主目录的 `calendar-widget-error.log` |
+| Google OAuth tokens | Electron `app.getPath('userData')/widget-data.json` |
+| Window position | The same `widget-data.json` file |
+| Countdowns | Electron renderer localStorage key `widget_countdowns` |
+| Pomodoro settings | localStorage key `pomo_cfg` |
+| Today's Pomodoro count | localStorage key `pomo_today` |
+| Focus history | localStorage key `pomo_history` |
+| Error log | `calendar-widget-error.log` in the user's home directory |
 
-OAuth Token 当前以 JSON 形式保存在 Electron 用户数据目录中，并未额外加密。请保护操作系统账户，不要分享该数据文件；如果怀疑泄漏，应在 Google 账号安全设置中撤销应用授权。
+OAuth tokens are currently stored as JSON in Electron's user-data directory without additional encryption. Protect the operating-system account and do not share this file. If exposure is suspected, revoke the application's access from the Google Account security settings.
 
-## 安全边界
+## Security Boundaries
 
-- 主窗口保持 `nodeIntegration: false` 和 `contextIsolation: true`。
-- Renderer 只能通过 `preload.js` 和 `fullscreen-preload.js` 暴露的有限 IPC 调用主进程。
-- 不应为了方便而开启 Renderer 的 Node.js 权限。
-- `credentials.js` 不进入 Git，但桌面应用中的 OAuth Client Secret 不能被视为真正不可提取的服务器端秘密。
-- 日历事件标题来自 Google Calendar，插入 HTML 前必须经过 `esc()`。
+- The main window keeps `nodeIntegration: false` and `contextIsolation: true`.
+- Renderer processes can reach the main process only through the limited IPC methods exposed by `preload.js` and `fullscreen-preload.js`.
+- Do not enable Node.js access in a renderer for convenience.
+- `credentials.js` is excluded from Git, but an OAuth Client Secret embedded in a desktop application cannot be treated as a true server-side secret.
+- Google Calendar event titles are untrusted input and must pass through `esc()` before being inserted into HTML.
 
-## 项目结构
+## Project Structure
 
 ```text
-main.js                 Electron 主进程、OAuth、窗口、托盘和 IPC
-preload.js              主 Widget 的受限 IPC 桥
-renderer.js             日程、倒计时、番茄钟和界面逻辑
-index.html              主 Widget 页面和样式
-fullscreen-preload.js   全屏界面的受限 IPC 桥
-fullscreen.html         全屏专注界面
-credentials.example.js  不含真实值的 OAuth 配置模板
-tray-icon.png           托盘图标
-AGENTS.md               Codex 项目规范
+main.js                 Electron main process, OAuth, windows, tray, and IPC
+preload.js              Restricted IPC bridge for the main Widget
+renderer.js             Calendar events, countdowns, Pomodoro timer, and UI
+index.html              Main Widget page and styles
+fullscreen-preload.js   Restricted IPC bridge for the fullscreen view
+fullscreen.html         Fullscreen focus interface
+credentials.example.js  OAuth configuration template without real values
+tray-icon.png           System tray icon
+AGENTS.md               Codex project instructions
 ```
 
-## 常见问题
+## Troubleshooting
 
-### 启动时提示找不到 `credentials.js`
+### `credentials.js` cannot be found at startup
 
-从 `credentials.example.js` 复制一份本地 `credentials.js`，再填写 OAuth 桌面客户端信息。
+Copy `credentials.example.js` to a local `credentials.js` file, then enter the OAuth desktop-client values.
 
-### 登录后没有日程
+### No events appear after sign-in
 
-Widget 当前只读取 `primary` 主日历。请确认事件位于同一 Google 账号的主日历，并检查 Google Calendar API 是否已启用。
+The Widget currently reads only the `primary` calendar. Confirm that the event belongs to the same Google account's primary calendar and that the Google Calendar API is enabled.
 
-### 登录页面无法完成回调
+### The sign-in page cannot complete the callback
 
-检查本机端口 `3721` 是否被占用，以及防火墙是否阻止 Node/Electron 监听本地回环地址。
+Check whether another process is using port `3721` and whether the firewall prevents Node/Electron from listening on the local loopback interface.
 
-### Widget 看不到 Web 应用创建的事件
+### Events created by the web app do not appear
 
-确认 Web 应用使用的是同一账号的主日历。Web 应用如果选择了其他日历，Widget 当前不会显示其中的事件。
+Confirm that the web app uses the same account and its primary calendar. Events written to another calendar are not currently displayed by the Widget.
 
-## 开发验证
+## Development Verification
 
-修改后至少验证：
+After making changes, at minimum:
 
-1. `node --check` 能通过所有 JavaScript 文件。
-2. `npm start` 可以打开 Widget。
-3. 登录、Token 刷新、退出和五分钟刷新正常。
-4. 番茄钟开始、暂停、重置、跳过、通知和全屏模式正常。
-5. 托盘隐藏、恢复和退出正常。
-6. 修改标签解析时同步检查 `smart-calendar/calendar.js`。
+1. Run `node --check` on all JavaScript files.
+2. Confirm that `npm start` opens the Widget.
+3. Test sign-in, token refresh, sign-out, and the five-minute refresh.
+4. Test Pomodoro start, pause, reset, skip, notifications, and fullscreen mode.
+5. Test tray hide, restore, and exit actions.
+6. If tag parsing changes, also inspect `smart-calendar/calendar.js`.
 
 ## License
 
 [MIT License](LICENSE)
-
----
-
-## English
-
-Calendar Widget is the Electron desktop companion to Smart Calendar. It displays read-only events from the primary Google Calendar, provides local countdowns, and includes a Pomodoro timer with notifications, weekly statistics, tray controls, and an idle-triggered fullscreen focus view.
-
-Install dependencies with `npm install`, copy `credentials.example.js` to `credentials.js`, configure a Google OAuth desktop client, and run `npm start`.
-
-Licensed under the [MIT License](LICENSE).
